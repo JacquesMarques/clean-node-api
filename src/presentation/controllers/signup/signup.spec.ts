@@ -5,7 +5,7 @@ import { type EmailValidator, type AccountModel, type AddAccountModel, type AddA
 const makeEmailValidator = (): EmailValidator => {
   class EmailValidatorStub implements EmailValidator {
     isValid (email: string): boolean {
-      return false
+      return true
     }
   }
   return new EmailValidatorStub()
@@ -166,21 +166,39 @@ describe('SigUp Controller', () => {
   })
 
   test('Should call AddAccount with correct values ', () => {
-    // const { sut, addAccountStub } = makeSut()
-    // const addSpy = jest.spyOn(addAccountStub, 'add')
-    // const httpRequest = {
-    //   body: {
-    //     name: 'any_name',
-    //     email: 'any_email@mail.com',
-    //     password: 'any_password',
-    //     passwordConfirmation: 'any_password'
-    //   }
-    // }
-    // sut.handle(httpRequest)
-    // expect(addSpy).toHaveBeenCalledWith({
-    //   name: 'any_name',
-    //   email: 'any_email@mail.com',
-    //   password: 'any_password'
-    // })
+    const { sut, addAccountStub } = makeSut()
+    const addSpy = jest.spyOn(addAccountStub, 'add')
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password',
+        passwordConfirmation: 'any_password'
+      }
+    }
+    sut.handle(httpRequest)
+    expect(addSpy).toHaveBeenCalledWith({
+      name: 'any_name',
+      email: 'any_email@mail.com',
+      password: 'any_password'
+    })
+  })
+
+  test('Should return 500 if AddAccount throws ', () => {
+    const { sut, addAccountStub } = makeSut()
+    jest.spyOn(addAccountStub, 'add').mockImplementationOnce(() => {
+      throw new Error()
+    })
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password',
+        passwordConfirmation: 'any_password'
+      }
+    }
+    const httpResponse = sut.handle(httpRequest)
+    expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 })
